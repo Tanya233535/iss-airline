@@ -19,30 +19,22 @@ public class AircraftService {
         this.aircraftRepository = aircraftRepository;
     }
 
-    /**
-     * Получить список всех самолётов.
-     */
     public List<Aircraft> getAllAircrafts() {
         return aircraftRepository.findAll();
     }
 
-    /**
-     * Получить самолёт по коду (ID).
-     */
     public Optional<Aircraft> getAircraftByCode(String code) {
         return aircraftRepository.findById(code);
     }
 
-    /**
-     * Добавить или обновить самолёт.
-     */
     public Aircraft saveAircraft(Aircraft aircraft) {
         return aircraftRepository.save(aircraft);
     }
 
-    /**
-     * Удалить самолёт по коду.
-     */
+    public Optional<Aircraft> findById(String id) {
+        return aircraftRepository.findById(id);
+    }
+
     public void deleteAircraft(String code) {
         aircraftRepository.deleteById(code);
     }

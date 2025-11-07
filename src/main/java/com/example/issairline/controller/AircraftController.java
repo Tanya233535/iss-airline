@@ -22,9 +22,7 @@ public class AircraftController {
         this.aircraftService = aircraftService;
     }
 
-    /**
-     * Отображение списка всех самолётов.
-     */
+
     @GetMapping
     public String listAircrafts(Model model) {
         List<Aircraft> aircrafts = aircraftService.getAllAircrafts();
@@ -32,27 +30,27 @@ public class AircraftController {
         return "aircrafts/list";
     }
 
-    /**
-     * Форма добавления нового самолёта.
-     */
     @GetMapping("/new")
     public String showCreateForm(Model model) {
         model.addAttribute("aircraft", new Aircraft());
         return "aircrafts/form";
     }
 
-    /**
-     * Сохранение нового или изменённого самолёта.
-     */
+
     @PostMapping
     public String saveAircraft(@ModelAttribute("aircraft") Aircraft aircraft) {
         aircraftService.saveAircraft(aircraft);
         return "redirect:/aircrafts";
     }
 
-    /**
-     * Удаление самолёта по коду.
-     */
+    @GetMapping("/edit/{aircraftCode}")
+    public String showEditForm(@PathVariable String aircraftCode, Model model) {
+        Aircraft aircraft = aircraftService.findById(aircraftCode)
+                .orElseThrow(() -> new IllegalArgumentException("Самолёт не найден: " + aircraftCode));
+        model.addAttribute("aircraft", aircraft);
+        return "aircrafts/form";
+    }
+
     @GetMapping("/delete/{code}")
     public String deleteAircraft(@PathVariable String code) {
         aircraftService.deleteAircraft(code);
