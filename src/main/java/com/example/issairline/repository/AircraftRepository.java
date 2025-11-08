@@ -10,9 +10,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface AircraftRepository extends JpaRepository<Aircraft, String> {
-
-    // Можно добавлять кастомные методы поиска, например:
-    // List<Aircraft> findByStatus(Aircraft.Status status);
-    // List<Aircraft> findByModelContainingIgnoreCase(String model);
 }
 

@@ -27,13 +27,13 @@ public class AircraftController {
     public String listAircrafts(Model model) {
         List<Aircraft> aircrafts = aircraftService.getAllAircrafts();
         model.addAttribute("aircrafts", aircrafts);
-        return "aircrafts/list";
+        return "aircraft_list";
     }
 
     @GetMapping("/new")
     public String showCreateForm(Model model) {
         model.addAttribute("aircraft", new Aircraft());
-        return "aircrafts/form";
+        return "aircraft_form";
     }
 
 
@@ -48,7 +48,7 @@ public class AircraftController {
         Aircraft aircraft = aircraftService.findById(aircraftCode)
                 .orElseThrow(() -> new IllegalArgumentException("Самолёт не найден: " + aircraftCode));
         model.addAttribute("aircraft", aircraft);
-        return "aircrafts/form";
+        return "aircraft_form";
     }
 
     @GetMapping("/delete/{code}")

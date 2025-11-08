@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Добавить / Редактировать рейс</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f6f8fa; margin: 40px; }
+        h1 { color: #222; text-align: center; }
+        form { background: white; padding: 20px; width: 420px; margin: 0 auto; border-radius: 6px; box-shadow: 0 0 10px #ccc; }
+        label { display: block; margin-top: 10px; }
+        input, select { width: 100%; padding: 8px; margin-top: 4px; box-sizing: border-box; }
+        button { margin-top: 15px; padding: 10px 15px; background: #4c89ff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        a { display: block; text-align: center; margin-top: 15px; color: #4c89ff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<h1 th:text="${flight.id == null ? 'Добавить новый рейс' : 'Редактировать рейс'}"></h1>
+
+<form th:action="@{/flights}" th:object="${flight}" method="post">
+
+    <input type="hidden" th:field="*{id}" />
+
+    <label>Номер рейса:</label>
+    <input type="text" th:field="*{flightNo}" maxlength="10" required />
+
+    <label>Аэропорт вылета:</label>
+    <input type="text" th:field="*{departureAirport}" maxlength="50" required />
+
+    <label>Аэропорт прибытия:</label>
+    <input type="text" th:field="*{arrivalAirport}" maxlength="50" required />
+
+    <label>Запланированное время вылета:</label>
+    <input type="datetime-local" th:field="*{scheduledDeparture}" required />
+
+    <label>Запланированное время прибытия:</label>
+    <input type="datetime-local" th:field="*{scheduledArrival}" required />
+
+    <label>Самолёт (бортовой номер):</label>
+    <select th:field="*{aircraft}" required>
+        <option th:each="a : ${aircrafts}"
+                th:value="${a.aircraftCode}"
+                th:text="${a.aircraftCode + ' (' + a.model + ')'}"></option>
+    </select>
+
+    <label>Статус:</label>
+    <select th:field="*{status}">
+        <option value="SCHEDULED">Запланирован</option>
+        <option value="ON_TIME">По расписанию</option>
+        <option value="DELAYED">Задержан</option>
+        <option value="CANCELLED">Отменён</option>
+        <option value="DEPARTED">Вылетел</option>
+        <option value="ARRIVED">Прибыл</option>
+    </select>
+
+    <button type="submit">Сохранить</button>
+</form>
+
+<a th:href="@{/flights}">← Назад к списку</a>
+
+</body>
+</html>
