@@ -38,9 +38,16 @@ public class FlightController {
     }
 
     @PostMapping
-    public String saveFlight(@ModelAttribute Flight flight) {
-        flightService.save(flight);
-        return "redirect:/flights";
+    public String saveFlight(@ModelAttribute Flight flight, Model model) {
+        try {
+            flightService.save(flight);
+            return "redirect:/flights";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("aircrafts", aircraftService.getAllAircrafts());
+            model.addAttribute("flight", flight);
+            return "flight_form";
+        }
     }
 
     @GetMapping("/edit/{id}")

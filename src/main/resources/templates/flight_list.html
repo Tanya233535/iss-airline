@@ -16,6 +16,13 @@
         a.delete { background: #ff5c5c; }
         a.button:hover { opacity: 0.9; }
         .top-bar { text-align: center; margin-bottom: 15px; }
+        .status { padding: 4px 8px; border-radius: 4px; color: white; font-weight: bold; }
+        .status.scheduled { background-color: #a0a0a0; }
+        .status.on_time { background-color: #9acd32; }
+        .status.delayed { background-color: #ff9800; }
+        .status.cancelled { background-color: #f44336; }
+        .status.departed { background-color: #007bff; }
+        .status.arrived { background-color: #4caf50; }
     </style>
 </head>
 <body>
@@ -49,7 +56,10 @@
         <td th:text="${#temporals.format(flight.scheduledDeparture, 'dd.MM.yyyy HH:mm')}"></td>
         <td th:text="${#temporals.format(flight.scheduledArrival, 'dd.MM.yyyy HH:mm')}"></td>
         <td th:text="${flight.aircraft.aircraftCode}"></td>
-        <td th:text="${flight.status}"></td>
+        <td>
+            <span th:text="${flight.status}"
+                  th:classappend="'status ' + ${flight.status.name().toLowerCase()}"></span>
+        </td>
         <td th:text="${flight.routeDuration}"></td>
         <td>
             <a th:href="@{'/flights/edit/' + ${flight.id}}" class="button">Редактировать</a>

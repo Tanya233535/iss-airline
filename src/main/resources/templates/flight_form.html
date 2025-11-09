@@ -17,6 +17,12 @@
 <body>
 <h1 th:text="${flight.id == null ? 'Добавить новый рейс' : 'Редактировать рейс'}"></h1>
 
+<div th:if="${errorMessage}"
+     style="background-color: #ffdddd; color: #a10000; border: 1px solid #ff5c5c;
+            padding: 10px; margin-bottom: 15px; border-radius: 5px; text-align: center;">
+    <strong th:text="${errorMessage}"></strong>
+</div>
+
 <form th:action="@{/flights}" th:object="${flight}" method="post">
 
     <input type="hidden" th:field="*{id}" />

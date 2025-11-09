@@ -16,6 +16,11 @@
 </head>
 <body>
 <h1>Добавить самолёт</h1>
+<div th:if="${errorMessage}"
+     style="background-color: #ffdddd; color: #a10000; border: 1px solid #ff5c5c;
+            padding: 10px; margin-bottom: 15px; border-radius: 5px; text-align: center;">
+    <strong th:text="${errorMessage}"></strong>
+</div>
 
 <form th:action="@{/aircrafts}" th:object="${aircraft}" method="post">
     <label>Код самолёта:</label>

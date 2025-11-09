@@ -38,9 +38,15 @@ public class AircraftController {
 
 
     @PostMapping
-    public String saveAircraft(@ModelAttribute("aircraft") Aircraft aircraft) {
-        aircraftService.saveAircraft(aircraft);
-        return "redirect:/aircrafts";
+    public String saveAircraft(@ModelAttribute Aircraft aircraft, Model model) {
+        try {
+            aircraftService.saveAircraft(aircraft);
+            return "redirect:/aircrafts";
+        } catch (IllegalArgumentException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("aircraft", aircraft);
+            return "aircraft_form";
+        }
     }
 
     @GetMapping("/edit/{aircraftCode}")

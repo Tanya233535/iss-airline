@@ -28,6 +28,24 @@ public class AircraftService {
     }
 
     public Aircraft saveAircraft(Aircraft aircraft) {
+        if (aircraft.getManufactureYear() != null) {
+            int year = aircraft.getManufactureYear();
+            int currentYear = java.time.LocalDate.now().getYear();
+            if (year < 1903 || year > currentYear) {
+                throw new IllegalArgumentException("Год выпуска должен быть между 1903 и " + currentYear);
+            }
+        }
+
+        if (aircraft.getLastMaintenanceDate() != null && aircraft.getManufactureYear() != null) {
+            int maintenanceYear = aircraft.getLastMaintenanceDate().getYear();
+            if (maintenanceYear < aircraft.getManufactureYear()) {
+                throw new IllegalArgumentException("Дата последнего ТО не может быть раньше года выпуска!");
+            }
+            if (aircraft.getLastMaintenanceDate().isAfter(java.time.LocalDate.now())) {
+                throw new IllegalArgumentException("Дата последнего ТО не может быть в будущем!");
+            }
+        }
+
         return aircraftRepository.save(aircraft);
     }
 
