@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru"
+      th:replace="~{layout :: layout(~{::body})}">
+
+<body th:with="pageTitle='Список экипажа'">
+
+<h1>Список членов экипажа</h1>
+
+<div class="top-bar">
+    <a th:href="@{/crew/new}" class="button">➕ Добавить члена экипажа</a>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Фамилия</th>
+        <th>Имя</th>
+        <th>Отчество</th>
+        <th>Должность</th>
+        <th>Квалификация</th>
+        <th>Стаж</th>
+        <th>Рейс</th>
+        <th>Действия</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="member : ${crewMembers}">
+        <td th:text="${member.memberId}"></td>
+        <td th:text="${member.lastName}"></td>
+        <td th:text="${member.firstName}"></td>
+        <td th:text="${member.middleName} ?: '-'"></td>
+        <td th:text="${member.role}"></td>
+        <td th:text="${member.qualification} ?: '-'"></td>
+        <td th:text="${member.experienceYears} ?: 0"></td>
+        <td th:text="${member.flight != null ? member.flight.flightNo : '—'}"></td>
+        <td>
+            <a th:href="@{'/crew/edit/' + ${member.memberId}}" class="button">Редактировать</a>
+            <a th:href="@{'/crew/delete/' + ${member.memberId}}"
+               class="button delete"
+               onclick="return confirm('Удалить члена экипажа: ' + [[${member.lastName}]] + ' ' + [[${member.firstName}]] + '?');">
+                Удалить
+            </a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

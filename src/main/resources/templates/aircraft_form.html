@@ -7,7 +7,7 @@
 
     <form th:action="@{/aircrafts}" th:object="${aircraft}" method="post" th:if="${aircraft != null}">
         <label>Код самолёта:</label>
-        <input type="text" th:field="*{aircraftCode}" maxlength="10" required th:readonly="${aircraft.aircraftCode != null}" /> <!-- readonly для edit -->
+        <input type="text" th:field="*{aircraftCode}" maxlength="10" required th:readonly="${aircraft.aircraftCode != null}" />
 
         <label>Модель:</label>
         <input type="text" th:field="*{model}" maxlength="50" required />
