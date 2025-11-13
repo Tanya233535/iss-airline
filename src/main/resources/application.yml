@@ -3,6 +3,10 @@ server:
   servlet:
     context-path: /iss
 
+  error:
+    whitelabel:
+      enabled: true
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/iss_airline_db
@@ -20,8 +24,24 @@ spring:
 
   thymeleaf:
     cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+
+  web:
+    resources:
+      add-mappings: true
 
   security:
     user:
       name: admin
       password: admin
+
+  flights:
+    status:
+      update-interval-ms: 10000        # интервал проверки
+      on-time-window-hours: 1
+
+logging:
+  level:
+    org.thymeleaf: DEBUG
+    org.springframework.web: DEBUG

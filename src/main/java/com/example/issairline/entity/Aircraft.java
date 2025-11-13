@@ -45,10 +45,18 @@ public class Aircraft {
     private LocalDate lastMaintenanceDate;
 
     @Column(name = "total_flight_hours")
-    private Integer totalFlightHours;
+    private Double totalFlightHours = 0.0;
 
     public enum Status {
         ACTIVE, MAINTENANCE, RETIRED
+    }
+
+    @Transient
+    public String getFormattedFlightHours() {
+        if (totalFlightHours == null) return "0 ч 00 мин";
+        int hours = totalFlightHours.intValue();
+        int minutes = (int) Math.round((totalFlightHours - hours) * 60);
+        return String.format("%d ч %02d мин", hours, minutes);
     }
 }
 

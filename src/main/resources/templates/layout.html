@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" th:fragment="layout(content)">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle} ?: 'ИС авиакомпании'"></title>
+    <style>
+        /* ===== Общие стили ===== */
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #e8f0ff, #f6f8fa);
+            margin: 0;
+            padding: 40px 0;
+            color: #222;
+        }
+        .container {
+            background: #ffffff;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        h1 {
+            color: #003366;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background-color: #4c89ff;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f8faff;
+        }
+        a.button {
+            display: inline-block;
+            padding: 8px 14px;
+            margin: 8px 5px;
+            background: #4c89ff;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+        a.button:hover {
+            background: #366ed8;
+            transform: translateY(-1px);
+        }
+        a.delete {
+            background: #ff5c5c;
+        }
+        a.delete:hover {
+            background: #e23c3c;
+        }
+        .top-bar {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        /* ===== Статусы ===== */
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+        }
+        .status.active {
+            background-color: #4caf50;
+        }
+        .status.maintenance {
+            background-color: #ff9800;
+        }
+        .status.retired {
+            background-color: #9e9e9e;
+        }
+        .status.scheduled {
+            background-color: #a0a0a0;
+        }
+        .status.on_time {
+            background-color: #9acd32;
+        }
+        .status.delayed {
+            background-color: #ff9800;
+        }
+        .status.cancelled {
+            background-color: #f44336;
+        }
+        .status.departed {
+            background-color: #007bff;
+        }
+        .status.arrived {
+            background-color: #4caf50;
+        }
+        /* ===== Toast ===== */
+        #toast {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+        #toast.success {
+            background-color: #4caf50;
+        }
+        #toast.error {
+            background-color: #f44336;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        input, select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        button {
+            padding: 8px;
+            background-color: #4c89ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #366ed8;
+        }
+        .error-message {
+            color: #f44336;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .form-container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .form-container form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .form-container label {
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .form-container input,
+        .form-container select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        .form-container button {
+            background-color: #4c89ff;
+            color: white;
+            border: none;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .form-container button:hover {
+            background-color: #366ed8;
+        }
+
+    </style>
+</head>
+<body>
+<div class="container">
+    <div th:replace="${content}"></div>
+
+    <div id="toast"
+         th:if="${(successMessage != null and !successMessage.isEmpty()) or (errorMessage != null and !errorMessage.isEmpty())}"
+         th:classappend="${successMessage != null and !successMessage.isEmpty()} ? 'success' : 'error'"
+         th:text="${(successMessage != null and !successMessage.isEmpty()) ? successMessage : errorMessage}">
+    </div>
+
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toast = document.getElementById("toast");
+        if (toast) {
+            toast.style.display = "block";
+            setTimeout(() => toast.classList.add("hide"), 4500);
+            toast.addEventListener("click", () => toast.remove());
+        }
+    });
+</script>
+<style>
+    #toast.hide { opacity: 0; transition: opacity 0.5s ease; }
+</style>
+</body>
+</html>
