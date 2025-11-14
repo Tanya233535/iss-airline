@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="ru"
+      th:replace="~{layout :: layout(~{::body})}">
+
+<body th:with="pageTitle=${passenger?.id == null ? 'Добавить пассажира' : 'Редактировать пассажира'}">
+
+<h1 th:text="${pageTitle}"></h1>
+
+<div class="form-container">
+
+    <form th:action="@{/passengers}" th:object="${passenger}" method="post">
+
+        <input type="hidden" th:field="*{id}"/>
+
+        <label>Фамилия:</label>
+        <input type="text" th:field="*{lastName}" required>
+
+        <label>Имя:</label>
+        <input type="text" th:field="*{firstName}" required>
+
+        <label>Отчество:</label>
+        <input type="text" th:field="*{middleName}">
+
+        <label>Паспорт:</label>
+        <input type="text" th:field="*{passportNumber}" required>
+
+        <label>Билет:</label>
+        <input type="text" th:field="*{ticketNumber}" required>
+
+        <label>Место:</label>
+        <input type="text" th:field="*{seat}" required>
+
+        <label>Рейс:</label>
+        <select name="flight">
+            <option th:value="${null}">— Без рейса —</option>
+            <option th:each="f : ${flights}"
+                    th:value="${f.id}"
+                    th:text="${f.flightNo + ' (' + f.departureAirport + ' → ' + f.arrivalAirport + ')'}">
+            </option>
+        </select>
+
+        <button type="submit">Сохранить</button>
+    </form>
+
+    <a th:href="@{/passengers}" class="button">← Назад к списку</a>
+
+</div>
+
+</body>
+</html>

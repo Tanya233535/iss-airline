@@ -23,24 +23,24 @@ public class CrewMember {
     private Long memberId;
 
     @NotBlank(message = "Фамилия обязательна")
-    @Size(max = 50, message = "Фамилия не должна превышать 50 символов")
+    @Size(max = 50)
     @Column(name = "last_name", nullable = false, length = 50)
     private String lastName;
 
     @NotBlank(message = "Имя обязательно")
-    @Size(max = 50, message = "Имя не должно превышать 50 символов")
+    @Size(max = 50)
     @Column(name = "first_name", nullable = false, length = 50)
     private String firstName;
 
-    @Size(max = 50, message = "Отчество не должно превышать 50 символов")
+    @Size(max = 50)
     @Column(name = "middle_name", length = 50)
     private String middleName;
 
     @NotBlank(message = "Должность обязательна")
-    @Size(max = 50, message = "Должность не должна превышать 50 символов")
+    @Size(max = 50)
     private String role;
 
-    @Size(max = 50, message = "Квалификация не должна превышать 50 символов")
+    @Size(max = 50)
     private String qualification;
 
     @Min(value = 0, message = "Стаж не может быть отрицательным")

@@ -32,12 +32,12 @@ public class Flight {
     private LocalDateTime scheduledArrival;
 
     @NotBlank(message = "Аэропорт вылета обязателен")
-    @Size(max = 50, message = "Название аэропорта вылета не должно превышать 50 символов")
+    @Size(max = 50)
     @Column(name = "departure_airport", nullable = false, length = 50)
     private String departureAirport;
 
     @NotBlank(message = "Аэропорт прибытия обязателен")
-    @Size(max = 50, message = "Название аэропорта прибытия не должно превышать 50 символов")
+    @Size(max = 50)
     @Column(name = "arrival_airport", nullable = false, length = 50)
     private String arrivalAirport;
 

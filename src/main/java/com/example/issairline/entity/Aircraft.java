@@ -26,7 +26,7 @@ public class Aircraft {
     private String aircraftCode;
 
     @NotBlank(message = "Модель обязательна")
-    @Size(max = 50, message = "Модель не должна превышать 50 символов")
+    @Size(max = 50)
     @Column(nullable = false, length = 50)
     private String model;
 
@@ -37,7 +37,7 @@ public class Aircraft {
 
     @NotNull(message = "Вместимость обязательна")
     @Min(value = 1, message = "Вместимость должна быть больше 0")
-    @Max(value = 400, message = "Вместимость не может превышать 400 мест")
+    @Max(value = 500, message = "Вместимость не может превышать 500 мест")
     @Column(nullable = false)
     private Integer capacity;
 

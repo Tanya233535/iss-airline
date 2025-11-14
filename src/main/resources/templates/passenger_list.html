@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="ru"
+      th:replace="~{layout :: layout(~{::body})}">
+
+<body th:with="pageTitle='Список пассажиров'">
+
+<h1>Список пассажиров</h1>
+
+<div class="top-bar">
+    <a th:href="@{/passengers/new}" class="button">➕ Добавить пассажира</a>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Фамилия</th>
+        <th>Имя</th>
+        <th>Отчество</th>
+        <th>Паспорт</th>
+        <th>Билет</th>
+        <th>Место</th>
+        <th>Рейс</th>
+        <th>Действия</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="p : ${passengers}">
+        <td th:text="${p.id}"></td>
+        <td th:text="${p.lastName}"></td>
+        <td th:text="${p.firstName}"></td>
+        <td th:text="${p.middleName} ?: '-'"></td>
+        <td th:text="${p.passportNumber}"></td>
+        <td th:text="${p.ticketNumber}"></td>
+        <td th:text="${p.seat}"></td>
+        <td th:text="${p.flight != null ? p.flight.flightNo : '—'}"></td>
+
+        <td>
+            <a th:href="@{'/passengers/edit/' + ${p.id}}" class="button">Редактировать</a>
+
+            <a th:href="@{'/passengers/delete/' + ${p.id}}"
+               class="button delete"
+               onclick="return confirm('Удалить пассажира: ' + [[${p.lastName}]] + ' ' + [[${p.firstName}]] + '?');">
+                Удалить
+            </a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
