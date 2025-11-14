@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru"
+      th:replace="~{layout :: layout(~{::body})}">
+
+<body th:with="pageTitle=${maintenance?.id == null ? 'Добавить запись ТО' : 'Редактировать запись ТО'}">
+
+<h1 th:text="${maintenance?.id == null ? 'Добавить запись ТО' : 'Редактировать запись ТО'}"></h1>
+
+<div class="form-container">
+
+    <form th:action="@{/maintenance}" th:object="${maintenance}" method="post"
+          th:if="${maintenance != null}">
+
+        <input type="hidden" th:field="*{id}"/>
+
+        <label>Самолёт:</label>
+        <select name="aircraft" required>
+            <option value="">— Выберите самолёт —</option>
+            <option th:each="a : ${aircrafts}"
+                    th:value="${a.aircraftCode}"
+                    th:selected="${maintenance.aircraft != null and maintenance.aircraft.aircraftCode == a.aircraftCode}"
+                    th:text="${a.aircraftCode + ' (' + a.model + ')'}">
+            </option>
+        </select>
+
+        <label>Дата обслуживания:</label>
+        <input type="date" th:field="*{maintenanceDate}" required/>
+
+        <label>Тип проверки:</label>
+        <select th:field="*{type}" required>
+            <option value="">— Выберите тип —</option>
+            <option value="A-check">A-check</option>
+            <option value="B-check">B-check</option>
+            <option value="C-check">C-check</option>
+            <option value="D-check">D-check</option>
+        </select>
+
+        <label>Инженер:</label>
+        <input type="text" th:field="*{engineerName}" maxlength="100" required/>
+
+        <label>Описание работ:</label>
+        <textarea th:field="*{description}" rows="4"></textarea>
+
+        <label>Следующая проверка:</label>
+        <input type="date" th:field="*{nextDueDate}"/>
+
+        <label>Статус:</label>
+        <select th:field="*{status}" required>
+            <option value="SCHEDULED">Scheduled</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="COMPLETED">Completed</option>
+        </select>
+
+        <button type="submit">Сохранить</button>
+    </form>
+
+    <a th:href="@{/maintenance}" class="button">← Назад</a>
+
+</div>
+
+</body>
+</html>

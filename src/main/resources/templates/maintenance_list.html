@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru"
+      th:replace="~{layout :: layout(~{::body})}">
+
+<body th:with="pageTitle='Техническое обслуживание'">
+
+<h1>Техническое обслуживание</h1>
+
+<div th:if="${successMessage}" class="alert success" th:text="${successMessage}"></div>
+<div th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></div>
+
+<div class="top-bar">
+    <a th:href="@{/maintenance/new}" class="button">➕ Добавить запись</a>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Самолёт</th>
+        <th>Дата ТО</th>
+        <th>Тип</th>
+        <th>Инженер</th>
+        <th>Следующая проверка</th>
+        <th>Статус</th>
+        <th>Действия</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="m : ${records}">
+        <td th:text="${m.id}"></td>
+        <td th:text="${m.aircraft.aircraftCode}"></td>
+        <td th:text="${m.maintenanceDate}"></td>
+        <td th:text="${m.type}"></td>
+        <td th:text="${m.engineerName}"></td>
+        <td th:text="${m.nextDueDate != null ? m.nextDueDate : '—'}"></td>
+        <td th:text="${m.status}"></td>
+
+        <td>
+            <a th:href="@{'/maintenance/edit/' + ${m.id}}" class="button">Редактировать</a>
+
+            <a th:href="@{'/maintenance/delete/' + ${m.id}}"
+               class="button delete"
+               onclick="return confirm('Удалить запись ТО № ' + [[${m.id}]] + '?');">
+                Удалить
+            </a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
