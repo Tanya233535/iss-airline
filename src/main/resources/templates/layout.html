@@ -207,8 +207,7 @@
 </head>
 <body>
 <div class="container">
-    <div th:replace="${content}"></div>
-
+    <div th:insert="${content}"></div>
     <div id="toast"
          th:if="${(successMessage != null and !successMessage.isEmpty()) or (errorMessage != null and !errorMessage.isEmpty())}"
          th:classappend="${successMessage != null and !successMessage.isEmpty()} ? 'success' : 'error'"

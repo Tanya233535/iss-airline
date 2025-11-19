@@ -4,6 +4,7 @@ import com.example.issairline.entity.Flight;
 import com.example.issairline.service.AircraftService;
 import com.example.issairline.service.FlightService;
 import com.example.issairline.service.ScheduledStatusUpdater;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +27,7 @@ public class FlightController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','DISPATCHER','ENGINEER','VIEWER')")
     public String listFlights(Model model,
                               @ModelAttribute(value = "successMessage", binding = false) String successMessage,
                               @ModelAttribute(value = "errorMessage", binding = false) String errorMessage) {
@@ -42,8 +44,8 @@ public class FlightController {
         return "flight_list";
     }
 
-
     @GetMapping("/new")
+    @PreAuthorize("hasAnyRole('ADMIN','DISPATCHER')")
     public String createForm(Model model) {
         model.addAttribute("flight", new Flight());
         model.addAttribute("aircrafts", aircraftService.getAllAircrafts());
@@ -51,6 +53,7 @@ public class FlightController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','DISPATCHER')")
     public String saveFlight(@ModelAttribute Flight flight, RedirectAttributes ra) {
         try {
             flightService.save(flight);
@@ -62,6 +65,7 @@ public class FlightController {
     }
 
     @GetMapping("/edit/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','DISPATCHER')")
     public String editForm(@PathVariable Long id, Model model, RedirectAttributes ra) {
         return flightService.findById(id)
                 .map(flight -> {
@@ -76,6 +80,7 @@ public class FlightController {
     }
 
     @GetMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String deleteFlight(@PathVariable Long id, RedirectAttributes ra) {
         try {
             flightService.deleteById(id);
@@ -87,6 +92,7 @@ public class FlightController {
     }
 
     @GetMapping("/update-statuses")
+    @PreAuthorize("hasAnyRole('ADMIN','DISPATCHER')")
     public String updateStatuses(RedirectAttributes ra) {
         try {
             scheduledStatusUpdater.runUpdateCycle();

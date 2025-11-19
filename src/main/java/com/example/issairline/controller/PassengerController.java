@@ -7,6 +7,7 @@ import com.example.issairline.repository.FlightRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -23,12 +24,14 @@ public class PassengerController {
     private final FlightRepository flightRepository;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','DISPATCHER','VIEWER')")
     public String list(Model model) {
         model.addAttribute("passengers", passengerService.findAll());
         return "passenger_list";
     }
 
     @GetMapping("/new")
+    @PreAuthorize("hasAnyRole('ADMIN','DISPATCHER')")
     public String createForm(Model model) {
         model.addAttribute("passenger", new Passenger());
         model.addAttribute("flights", flightRepository.findAll());
@@ -36,6 +39,7 @@ public class PassengerController {
     }
 
     @GetMapping("/edit/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','DISPATCHER')")
     public String editForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         try {
             Passenger p = passengerService.findById(id);
@@ -49,6 +53,7 @@ public class PassengerController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','DISPATCHER')")
     public String save(@Valid @ModelAttribute("passenger") Passenger passenger,
                        BindingResult result,
                        @RequestParam(value = "flight", required = false) Long flightId,
@@ -82,6 +87,7 @@ public class PassengerController {
     }
 
     @GetMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             passengerService.delete(id);

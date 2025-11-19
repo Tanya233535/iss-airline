@@ -31,10 +31,6 @@ spring:
     resources:
       add-mappings: true
 
-  security:
-    user:
-      name: admin
-      password: admin
 
   flights:
     status:

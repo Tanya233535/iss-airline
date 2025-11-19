@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: layout(~{::body})}">
+
+<body th:with="pageTitle='Пользователи системы'">
+
+<h1>Пользователи</h1>
+
+<div class="top-bar">
+    <a class="button" th:href="@{/users/new}">➕ Добавить пользователя</a>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Логин</th>
+        <th>Роль</th>
+        <th>Действия</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="u : ${users}">
+        <td th:text="${u.id}"></td>
+        <td th:text="${u.username}"></td>
+        <td th:text="${u.role}"></td>
+
+        <td>
+            <a class="button" th:href="@{'/users/edit/' + ${u.id}}">Редактировать</a>
+
+            <a class="button delete"
+               th:href="@{'/users/delete/' + ${u.id}}"
+               onclick="return confirm('Удалить пользователя ' + [[${u.username}]] + '?');">
+                Удалить
+            </a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

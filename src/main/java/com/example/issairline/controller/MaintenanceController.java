@@ -7,6 +7,7 @@ import com.example.issairline.repository.MaintenanceRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -25,6 +26,7 @@ public class MaintenanceController {
     private final AircraftRepository aircraftRepository;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','ENGINEER','DISPATCHER','VIEWER')")
     public String list(Model model,
                        @RequestParam(value = "successMessage", required = false) String successMessage,
                        @RequestParam(value = "errorMessage", required = false) String errorMessage) {
@@ -37,6 +39,7 @@ public class MaintenanceController {
     }
 
     @GetMapping("/new")
+    @PreAuthorize("hasAnyRole('ADMIN','ENGINEER')")
     public String createForm(Model model) {
         model.addAttribute("maintenance", new Maintenance());
         model.addAttribute("aircrafts", aircraftRepository.findAll());
@@ -45,6 +48,7 @@ public class MaintenanceController {
     }
 
     @GetMapping("/edit/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','ENGINEER')")
     public String editForm(@PathVariable Long id, Model model, RedirectAttributes attrs) {
 
         Maintenance m = maintenanceRepository.findById(id).orElse(null);
@@ -61,8 +65,8 @@ public class MaintenanceController {
         return "maintenance_form";
     }
 
-
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','ENGINEER')")
     public String save(@Valid @ModelAttribute("maintenance") Maintenance maintenance,
                        BindingResult result,
                        @RequestParam("aircraft") String aircraftCode,
@@ -88,28 +92,17 @@ public class MaintenanceController {
                     maintenance.getNextDueDate().isBefore(maintenance.getMaintenanceDate()))
                 throw new RuntimeException("Следующая дата ТО не может быть раньше текущей");
 
-
             if (!maintenance.getType().matches("A-check|B-check|C-check|D-check"))
                 throw new RuntimeException("Некорректный тип проверки (допустимы A/B/C/D-check)");
 
             if (maintenance.getMaintenanceDate() != null) {
                 LocalDate date = maintenance.getMaintenanceDate();
-
                 switch (maintenance.getType()) {
-                    case "A-check":
-                        maintenance.setNextDueDate(date.plusMonths(3));
-                        break;
-                    case "B-check":
-                        maintenance.setNextDueDate(date.plusMonths(6));
-                        break;
-                    case "C-check":
-                        maintenance.setNextDueDate(date.plusMonths(18));
-                        break;
-                    case "D-check":
-                        maintenance.setNextDueDate(date.plusYears(8));
-                        break;
-                    default:
-                        throw new RuntimeException("Неизвестный тип проверки: " + maintenance.getType());
+                    case "A-check" -> maintenance.setNextDueDate(date.plusMonths(3));
+                    case "B-check" -> maintenance.setNextDueDate(date.plusMonths(6));
+                    case "C-check" -> maintenance.setNextDueDate(date.plusMonths(18));
+                    case "D-check" -> maintenance.setNextDueDate(date.plusYears(8));
+                    default -> throw new RuntimeException("Неизвестный тип проверки: " + maintenance.getType());
                 }
             }
 
@@ -136,6 +129,7 @@ public class MaintenanceController {
     }
 
     @GetMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String delete(@PathVariable Long id, RedirectAttributes attrs) {
         try {
             maintenanceRepository.deleteById(id);

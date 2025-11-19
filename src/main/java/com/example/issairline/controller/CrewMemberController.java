@@ -9,6 +9,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -24,14 +25,15 @@ public class CrewMemberController {
     private final CrewMemberService crewMemberService;
     private final FlightRepository flightRepository;
 
-
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','DISPATCHER','ENGINEER','VIEWER')")
     public String list(Model model) {
         model.addAttribute("crewMembers", crewMemberService.findAll());
         return "crew_list";
     }
 
     @GetMapping("/new")
+    @PreAuthorize("hasAnyRole('ADMIN','DISPATCHER')")
     public String createForm(Model model) {
         model.addAttribute("crewMember", new CrewMember());
         model.addAttribute("flights", flightRepository.findAll());
@@ -39,6 +41,7 @@ public class CrewMemberController {
     }
 
     @GetMapping("/edit/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','DISPATCHER')")
     public String editForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         return crewMemberService.findById(id)
                 .map(member -> {
@@ -53,6 +56,7 @@ public class CrewMemberController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','DISPATCHER')")
     public String save(@Valid @ModelAttribute("crewMember") CrewMember crewMember,
                        BindingResult result,
                        @RequestParam(value = "flight", required = false) Long flightId,
@@ -85,7 +89,6 @@ public class CrewMemberController {
             return "crew_form";
 
         } catch (EntityNotFoundException e) {
-            log.warn("Ошибка при сохранении: {}", e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/crew";
 
@@ -98,6 +101,7 @@ public class CrewMemberController {
     }
 
     @GetMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             crewMemberService.deleteById(id);

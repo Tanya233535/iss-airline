@@ -27,42 +27,78 @@ public class CrewMemberService {
     }
 
     public Optional<CrewMember> findById(Long id) {
+        if (id == null) {
+            log.warn("Передан null вместо ID члена экипажа");
+            return Optional.empty();
+        }
         return crewRepository.findById(id);
     }
 
     public List<CrewMember> findByFlight(Long flightId) {
+        if (flightId == null) {
+            log.warn("Попытка получить экипаж для null flightId");
+            return List.of();
+        }
         return crewRepository.findByFlight_Id(flightId);
     }
 
     @Transactional
     public void save(CrewMember member) {
+
+        if (member == null) {
+            throw new IllegalArgumentException("Член экипажа не может быть null");
+        }
+
+        if (member.getFirstName() == null || member.getLastName() == null) {
+            throw new IllegalArgumentException("Имя и фамилия не могут быть пустыми");
+        }
+
         try {
             crewRepository.save(member);
-            log.info("Сохранён член экипажа: {} {} ({})",
-                    member.getLastName(), member.getFirstName(), member.getRole());
+
+            log.info("Сохранён член экипажа: {} {} (роль: {}, рейс: {})",
+                    member.getLastName(),
+                    member.getFirstName(),
+                    member.getRole(),
+                    member.getFlight() != null ? member.getFlight().getId() : "без рейса");
+
         } catch (DataIntegrityViolationException ex) {
-            log.warn("Попытка добавить дубликат: {} {} ({})", member.getLastName(), member.getFirstName(), member.getRole());
-            throw new EntityExistsException("Такой член экипажа уже прикреплён к этому рейсу!");
+
+            log.warn("Нарушение ограничений при сохранении члена экипажа {} {} — возможно, дубликат",
+                    member.getLastName(), member.getFirstName());
+
+            throw new EntityExistsException("Такой член экипажа уже существует или прикреплён к этому рейсу!");
         } catch (Exception ex) {
-            log.error("Ошибка при сохранении члена экипажа: {}", ex.getMessage(), ex);
-            throw new RuntimeException("Не удалось сохранить данные члена экипажа!");
+            log.error("Ошибка при сохранении члена экипажа", ex);
+            throw new IllegalStateException("Не удалось сохранить данные члена экипажа!");
         }
     }
 
     @Transactional
     public void deleteById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("ID не может быть пустым");
+        }
+
         try {
             if (!crewRepository.existsById(id)) {
                 throw new EntityNotFoundException("Член экипажа не найден!");
             }
+
             crewRepository.deleteById(id);
             log.info("Удалён член экипажа ID={}", id);
+
         } catch (EntityNotFoundException e) {
-            log.warn("Попытка удалить несуществующего члена экипажа: {}", id);
+            log.warn("Попытка удалить несуществующего члена экипажа ID={}", id);
             throw e;
+
+        } catch (DataIntegrityViolationException e) {
+            log.error("Ошибка удаления — член экипажа связан с данными", e);
+            throw new IllegalStateException("Невозможно удалить: член экипажа связан с рейсом");
+
         } catch (Exception e) {
-            log.error("Ошибка при удалении члена экипажа: {}", e.getMessage(), e);
-            throw new RuntimeException("Не удалось удалить члена экипажа!");
+            log.error("Ошибка при удалении члена экипажа", e);
+            throw new IllegalStateException("Не удалось удалить члена экипажа!");
         }
     }
 }
