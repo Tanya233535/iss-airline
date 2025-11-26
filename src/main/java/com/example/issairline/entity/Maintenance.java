@@ -31,7 +31,7 @@ public class Maintenance {
 
     @Column(nullable = false, length = 50)
     @NotBlank(message = "Тип проверки обязателен")
-    private String type; // A-check, B-check, C-check, D-check
+    private String type;
 
     @Column(name = "engineer_name", nullable = false, length = 100)
     @NotBlank(message = "Введите имя инженера")

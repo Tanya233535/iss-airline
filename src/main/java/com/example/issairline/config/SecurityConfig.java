@@ -7,8 +7,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -22,52 +22,42 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .authorizeHttpRequests(auth -> auth
+                .csrf(csrf -> csrf.disable())
 
+                .userDetailsService(userDetailsService)
+
+                .authenticationProvider(authProvider())
+
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/**").authenticated()
 
                         .requestMatchers("/login", "/css/**", "/js/**").permitAll()
 
-
-
                         .requestMatchers("/aircrafts/new", "/aircrafts/edit/**", "/aircrafts/delete/**")
-                        .hasAnyRole("ADMIN", "ENGINEER")
+                        .hasAnyAuthority("ADMIN", "ENGINEER")
 
                         .requestMatchers("/aircrafts/**")
-                        .hasAnyRole("ADMIN", "ENGINEER", "DISPATCHER", "VIEWER")
-
+                        .hasAnyAuthority("ADMIN", "ENGINEER", "DISPATCHER", "VIEWER")
 
                         .requestMatchers("/flights/new", "/flights/edit/**", "/flights/delete/**")
-                        .hasAnyRole("ADMIN", "DISPATCHER")
+                        .hasAnyAuthority("ADMIN", "DISPATCHER")
 
                         .requestMatchers("/flights/**")
-                        .hasAnyRole("ADMIN", "DISPATCHER", "ENGINEER", "VIEWER")
-
+                        .hasAnyAuthority("ADMIN", "DISPATCHER", "ENGINEER", "VIEWER")
 
                         .requestMatchers("/users/**")
-                        .hasRole("ADMIN")
-
+                        .hasAuthority("ADMIN")
 
                         .anyRequest().authenticated()
                 )
 
-                .formLogin(form -> form
+                .formLogin(f -> f
                         .loginPage("/login")
-                        .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/", true)
-                        .failureUrl("/login?error")
                         .permitAll()
                 )
 
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout")
-                        .permitAll()
-                )
-
-
-                .exceptionHandling(ex -> ex
-                        .accessDeniedPage("/error/403")
-                );
+                .httpBasic(b -> {});
 
         return http.build();
     }

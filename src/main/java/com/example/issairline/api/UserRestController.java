@@ -57,9 +57,9 @@ public class UserRestController {
         existing.setRole(updates.getRole());
 
         if (updates.getPassword() != null && !updates.getPassword().isBlank()) {
-            userService.save(existing, true); // шифруем новый пароль
+            userService.save(existing, true);
         } else {
-            userService.save(existing, false); // оставляем старый
+            userService.save(existing, false);
         }
 
         return existing;
