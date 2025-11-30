@@ -23,13 +23,12 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
-
                 .userDetailsService(userDetailsService)
-
                 .authenticationProvider(authProvider())
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login").permitAll()
+
                         .requestMatchers("/api/**").authenticated()
 
                         .requestMatchers("/login", "/css/**", "/js/**").permitAll()
@@ -46,17 +45,30 @@ public class SecurityConfig {
                         .requestMatchers("/flights/**")
                         .hasAnyAuthority("ADMIN", "DISPATCHER", "ENGINEER", "VIEWER")
 
-                        .requestMatchers("/users/**")
-                        .hasAuthority("ADMIN")
+                        .requestMatchers("/maintenance/new", "/maintenance/edit/**", "/maintenance/delete/**")
+                        .hasAnyAuthority("ADMIN", "ENGINEER")
+
+                        .requestMatchers("/maintenance/**")
+                        .hasAnyAuthority("ADMIN", "DISPATCHER", "ENGINEER", "VIEWER")
+
+                        .requestMatchers("/crew/new", "/crew/edit/**", "/crew/delete/**")
+                        .hasAnyAuthority("ADMIN", "DISPATCHER")
+
+                        .requestMatchers("/crew/**")
+                        .hasAnyAuthority("ADMIN", "DISPATCHER", "ENGINEER", "VIEWER")
+
+                        .requestMatchers("/passengers/new", "/passengers/edit/**", "/passengers/delete/**")
+                        .hasAnyAuthority("ADMIN", "DISPATCHER")
+
+                        .requestMatchers("/passengers/**")
+                        .hasAnyAuthority("ADMIN", "DISPATCHER", "ENGINEER", "VIEWER")
+
+                        .requestMatchers("/users/**").hasAuthority("ADMIN")
 
                         .anyRequest().authenticated()
                 )
 
-                .formLogin(f -> f
-                        .loginPage("/login")
-                        .permitAll()
-                )
-
+                .formLogin(f -> f.loginPage("/login").permitAll())
                 .httpBasic(b -> {});
 
         return http.build();

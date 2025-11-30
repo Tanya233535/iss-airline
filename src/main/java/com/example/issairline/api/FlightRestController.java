@@ -33,8 +33,15 @@ public class FlightRestController {
     public Flight create(@RequestBody Flight flight) {
 
         Aircraft aircraft = loadAircraft(flight);
-        flight.setAircraft(aircraft);
 
+        if (aircraft.getStatus() == Aircraft.Status.MAINTENANCE) {
+            throw new IllegalStateException(
+                    "Самолёт " + aircraft.getAircraftCode() +
+                            " находится на техническом обслуживании и не может быть назначен на рейс"
+            );
+        }
+
+        flight.setAircraft(aircraft);
         flightService.save(flight);
         return flight;
     }
@@ -55,8 +62,15 @@ public class FlightRestController {
         existing.setStatus(updates.getStatus());
 
         Aircraft aircraft = loadAircraft(updates);
-        existing.setAircraft(aircraft);
 
+        if (aircraft.getStatus() == Aircraft.Status.MAINTENANCE) {
+            throw new IllegalStateException(
+                    "Самолёт " + aircraft.getAircraftCode() +
+                            " находится на техническом обслуживании и не может быть назначен на рейс"
+            );
+        }
+
+        existing.setAircraft(aircraft);
         flightService.save(existing);
         return existing;
     }

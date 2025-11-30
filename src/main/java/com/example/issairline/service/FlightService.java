@@ -50,7 +50,7 @@ public class FlightService {
             throw new IllegalArgumentException("Рейс не может быть null");
         }
 
-        boolean isNew = (flight.getId() == null);
+        boolean isNew = (flight.getId() == null || flight.getId() == 0);
         Flight existingFlight = null;
 
         if (!isNew) {
