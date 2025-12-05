@@ -1,6 +1,8 @@
 package com.example.issairline.service;
 
+import com.example.issairline.entity.Aircraft;
 import com.example.issairline.entity.Maintenance;
+import com.example.issairline.repository.AircraftRepository;
 import com.example.issairline.repository.MaintenanceRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +11,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,6 +21,7 @@ import java.util.Optional;
 public class MaintenanceService {
 
     private final MaintenanceRepository repo;
+    private final AircraftRepository aircraftRepository;
 
     public List<Maintenance> findAll() {
         return repo.findAll();
@@ -35,7 +39,30 @@ public class MaintenanceService {
     public void save(Maintenance m) {
         try {
             repo.save(m);
+
+            Aircraft ac = m.getAircraft();
+            if (ac != null) {
+
+                LocalDate maintenanceDate = m.getMaintenanceDate() != null
+                        ? m.getMaintenanceDate()
+                        : LocalDate.now();
+
+                ac.setLastMaintenanceDate(maintenanceDate);
+
+                ac.setStatus(Aircraft.Status.ACTIVE);
+
+                aircraftRepository.save(ac);
+
+                log.info(
+                        "ТО завершено: самолёт {} получил дату ТО {} и статус {}",
+                        ac.getAircraftCode(),
+                        ac.getLastMaintenanceDate(),
+                        ac.getStatus()
+                );
+            }
+
             log.info("Сохранена запись ТО ID={}", m.getId());
+
         } catch (DataIntegrityViolationException e) {
             log.warn("Ошибка целостности БД при сохранении ТО");
             throw new IllegalStateException("Не удаётся сохранить запись техобслуживания");

@@ -2,7 +2,6 @@ server:
   port: 8080
   servlet:
     context-path: /iss
-
   error:
     whitelabel:
       enabled: true
@@ -31,11 +30,16 @@ spring:
     resources:
       add-mappings: true
 
-
   flights:
     status:
-      update-interval-ms: 10000        # интервал проверки
+      update-interval-ms: 10000
       on-time-window-hours: 1
+
+aircraft:
+  maintenance:
+    threshold-hours: 500
+    period-days: 180
+    check-interval-ms: 60000
 
 logging:
   level:

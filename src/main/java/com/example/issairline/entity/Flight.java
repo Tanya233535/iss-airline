@@ -23,7 +23,6 @@ public class Flight {
     private String flightNo;
 
     @NotNull(message = "Дата и время вылета обязательны")
-    @FutureOrPresent(message = "Время вылета не может быть в прошлом")
     @Column(name = "scheduled_departure", nullable = false)
     private LocalDateTime scheduledDeparture;
 
@@ -55,6 +54,10 @@ public class Flight {
     @JoinColumn(name = "aircraft_code", nullable = false)
     @NotNull(message = "Самолёт обязателен")
     private Aircraft aircraft;
+
+    @Column(name = "passenger_count", nullable = false)
+    @Min(0)
+    private Integer passengerCount = 0;
 
     @Transient
     private String routeDuration;

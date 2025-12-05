@@ -41,6 +41,10 @@ public class FlightRestController {
             );
         }
 
+        if (flight.getPassengerCount() == null) {
+            flight.setPassengerCount(0);
+        }
+
         flight.setAircraft(aircraft);
         flightService.save(flight);
         return flight;
@@ -60,6 +64,7 @@ public class FlightRestController {
         existing.setActualDeparture(updates.getActualDeparture());
         existing.setActualArrival(updates.getActualArrival());
         existing.setStatus(updates.getStatus());
+        existing.setPassengerCount(updates.getPassengerCount());
 
         Aircraft aircraft = loadAircraft(updates);
 

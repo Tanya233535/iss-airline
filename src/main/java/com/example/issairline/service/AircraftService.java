@@ -97,4 +97,83 @@ public class AircraftService {
             throw new IllegalStateException("Самолёт связан с рейсами и не может быть удалён");
         }
     }
+
+    public boolean needsMaintenance(Aircraft ac, long thresholdHours, long periodDays) {
+
+        double hours = ac.getTotalFlightHours() == null ? 0 : ac.getTotalFlightHours();
+
+        if (hours >= thresholdHours) {
+            return true;
+        }
+
+        if (ac.getLastMaintenanceDate() != null) {
+            if (ac.getLastMaintenanceDate().plusDays(periodDays).isBefore(LocalDate.now())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public MaintenanceType detectRequiredCheck(Aircraft ac) {
+
+        double hours = ac.getTotalFlightHours() == null ? 0 : ac.getTotalFlightHours();
+        LocalDate last = ac.getLastMaintenanceDate();
+
+        if (hours >= MaintenanceType.A_CHECK.flightHoursInterval) {
+            return MaintenanceType.A_CHECK;
+        }
+
+        if (last != null && last.plusDays(MaintenanceType.B_CHECK.daysInterval)
+                .isBefore(LocalDate.now())) {
+            return MaintenanceType.B_CHECK;
+        }
+
+        if (hours >= MaintenanceType.C_CHECK.flightHoursInterval) {
+            return MaintenanceType.C_CHECK;
+        }
+
+        if (last != null && last.plusDays(MaintenanceType.C_CHECK.daysInterval)
+                .isBefore(LocalDate.now())) {
+            return MaintenanceType.C_CHECK;
+        }
+
+        if (last != null && last.plusDays(MaintenanceType.D_CHECK.daysInterval)
+                .isBefore(LocalDate.now())) {
+            return MaintenanceType.D_CHECK;
+        }
+
+        return null;
+    }
+
+    public void applyMaintenanceIfNeeded(Aircraft ac,
+                                         long thresholdHours,
+                                         long periodDays) {
+
+        if (needsMaintenance(ac, thresholdHours, periodDays)) {
+
+            if (ac.getStatus() != Aircraft.Status.MAINTENANCE) {
+                log.warn("Самолёт {} превышает срок простого ТО → MAINTENANCE",
+                        ac.getAircraftCode());
+
+                ac.setStatus(Aircraft.Status.MAINTENANCE);
+                aircraftRepository.save(ac);
+            }
+        }
+
+        MaintenanceType required = detectRequiredCheck(ac);
+
+        if (required != null) {
+
+            log.warn("Самолёту {} требуется {}", ac.getAircraftCode(), required);
+
+            if (ac.getStatus() != Aircraft.Status.MAINTENANCE) {
+
+                ac.setStatus(Aircraft.Status.MAINTENANCE);
+                aircraftRepository.save(ac);
+
+                log.warn("Самолёт {} переведён в MAINTENANCE из-за {}", ac.getAircraftCode(), required);
+            }
+        }
+    }
 }
