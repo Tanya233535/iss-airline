@@ -6,8 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -30,6 +30,7 @@ public class ScheduledStatusUpdater {
     }
 
     @Scheduled(fixedDelayString = "${flights.status.update-interval-ms:60000}")
+    @Transactional
     public void scheduledUpdate() {
         try {
             runUpdateCycle();
@@ -39,13 +40,14 @@ public class ScheduledStatusUpdater {
     }
 
     public void runUpdateCycle() {
-        List<Flight> flights = flightRepository.findAll();
+        List<Flight> flights = flightRepository.findAllWithAircraft();
         LocalDateTime now = LocalDateTime.now();
+
         for (Flight f : flights) {
             try {
-                flightService.processScheduledUpdateForFlight(f.getId(), now, onTimeWindowHours);
+                flightService.processScheduledUpdateForFlight(f, now, onTimeWindowHours);
             } catch (Exception e) {
-                log.error("Ошибка обработки рейса ID={}: {}", f.getId(), e.getMessage(), e);
+                log.error("Ошибка обработки рейса ID={}: {}", f == null ? "null" : f.getId(), e.getMessage(), e);
             }
         }
     }

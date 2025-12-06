@@ -40,12 +40,12 @@ public class FlightService {
     }
 
     public List<Flight> findAll() {
-        return flightRepository.findAll();
+        return flightRepository.findAllWithAircraft();
     }
 
     public Optional<Flight> findById(Long id) {
         if (id == null) return Optional.empty();
-        return flightRepository.findById(id);
+        return flightRepository.findByIdWithAircraft(id);
     }
 
     @Transactional
@@ -67,14 +67,16 @@ public class FlightService {
         Flight existingFlight = null;
 
         if (!isNew) {
-            existingFlight = flightRepository.findById(flight.getId())
-                    .orElseThrow(() -> new EntityNotFoundException("Рейс не найден!"));
+            if (!systemUpdate) {
+                existingFlight = flightRepository.findByIdWithAircraft(flight.getId())
+                        .orElseThrow(() -> new EntityNotFoundException("Рейс не найден!"));
 
-            if (!systemUpdate &&
-                    (existingFlight.getStatus() == Flight.Status.ARRIVED ||
-                            existingFlight.getStatus() == Flight.Status.DEPARTED)) {
-
-                throw new IllegalStateException("Нельзя изменять завершённые рейсы!");
+                if (existingFlight.getStatus() == Flight.Status.ARRIVED ||
+                        existingFlight.getStatus() == Flight.Status.DEPARTED) {
+                    throw new IllegalStateException("Нельзя изменять завершённые рейсы!");
+                }
+            } else {
+                existingFlight = null;
             }
         }
 
@@ -98,7 +100,7 @@ public class FlightService {
         if (id == null)
             throw new IllegalArgumentException("ID рейса не может быть пустым");
 
-        Flight flight = flightRepository.findById(id)
+        Flight flight = flightRepository.findByIdWithAircraft(id)
                 .orElseThrow(() -> new EntityNotFoundException("Рейс не найден!"));
 
         if (flight.getStatus() == Flight.Status.DEPARTED) {
@@ -233,9 +235,8 @@ public class FlightService {
         return Math.round((dur.toMinutes() / 60.0) * 100.0) / 100.0;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void processScheduledUpdateForFlight(Long flightId, LocalDateTime now, long onTimeWindowHours) {
-        Flight flight = flightRepository.findById(flightId).orElse(null);
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void processScheduledUpdateForFlight(Flight flight, LocalDateTime now, long onTimeWindowHours) {
         if (flight == null) return;
 
         if (flight.getScheduledDeparture() == null || flight.getScheduledArrival() == null) return;
@@ -260,7 +261,7 @@ public class FlightService {
         if (newStatus != previous) {
             flight.setStatus(newStatus);
             save(flight, true, previous);
-            log.info("AUTO UPDATE: ID={} статус {} → {}", flightId, previous, newStatus);
+            log.info("AUTO UPDATE: ID={} статус {} → {}", flight.getId(), previous, newStatus);
         }
     }
 }
