@@ -1,5 +1,7 @@
 package com.example.issairline.api;
 
+import com.example.issairline.api.dto.MaintenanceDto;
+import com.example.issairline.api.mapper.MaintenanceMapper;
 import com.example.issairline.entity.Aircraft;
 import com.example.issairline.entity.Maintenance;
 import com.example.issairline.repository.AircraftRepository;
@@ -19,54 +21,43 @@ public class MaintenanceRestController {
     private final AircraftRepository aircraftRepository;
 
     @GetMapping
-    public List<Maintenance> getAll() {
-        return maintenanceService.findAll();
+    public List<MaintenanceDto> getAll() {
+        return maintenanceService.findAll().stream()
+                .map(MaintenanceMapper::toDto)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public Maintenance getById(@PathVariable Long id) {
-        return maintenanceService.findById(id)
+    public MaintenanceDto getById(@PathVariable Long id) {
+        Maintenance m = maintenanceService.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Запись ТО не найдена"));
+        return MaintenanceMapper.toDto(m);
     }
 
     @PostMapping
-    public Maintenance create(@RequestBody Maintenance m) {
-
-        Aircraft aircraft = aircraftRepository.findById(m.getAircraft().getAircraftCode())
+    public MaintenanceDto create(@RequestBody MaintenanceDto dto) {
+        Aircraft aircraft = aircraftRepository.findById(dto.getAircraftCode())
                 .orElseThrow(() -> new EntityNotFoundException("Самолёт не найден"));
 
-        m.setAircraft(aircraft);
-
+        Maintenance m = MaintenanceMapper.toEntity(dto, aircraft);
         validateType(m.getType());
-
         maintenanceService.save(m);
-        return m;
+        return MaintenanceMapper.toDto(m);
     }
 
     @PutMapping("/{id}")
-    public Maintenance update(@PathVariable Long id, @RequestBody Maintenance updates) {
-
+    public MaintenanceDto update(@PathVariable Long id, @RequestBody MaintenanceDto dto) {
         Maintenance existing = maintenanceService.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Запись ТО не найдена"));
 
+        Aircraft aircraft = aircraftRepository.findById(dto.getAircraftCode())
+                .orElseThrow(() -> new EntityNotFoundException("Самолёт не найден"));
 
-        existing.setMaintenanceDate(updates.getMaintenanceDate());
-        existing.setNextDueDate(updates.getNextDueDate());
-        existing.setEngineerName(updates.getEngineerName());
-        existing.setDescription(updates.getDescription());
-        existing.setStatus(updates.getStatus());
-
-        validateType(updates.getType());
-        existing.setType(updates.getType());
-
-        if (updates.getAircraft() != null) {
-            Aircraft aircraft = aircraftRepository.findById(updates.getAircraft().getAircraftCode())
-                    .orElseThrow(() -> new EntityNotFoundException("Самолёт не найден"));
-            existing.setAircraft(aircraft);
-        }
-
-        maintenanceService.save(existing);
-        return existing;
+        Maintenance updated = MaintenanceMapper.toEntity(dto, aircraft);
+        updated.setId(id);
+        validateType(updated.getType());
+        maintenanceService.save(updated);
+        return MaintenanceMapper.toDto(updated);
     }
 
     @DeleteMapping("/{id}")

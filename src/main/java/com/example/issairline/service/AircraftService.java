@@ -33,7 +33,6 @@ public class AircraftService {
     }
 
     public Aircraft saveAircraft(Aircraft aircraft) {
-
         if (aircraft == null) {
             throw new IllegalArgumentException("Самолёт не может быть null");
         }
@@ -58,7 +57,6 @@ public class AircraftService {
         }
 
         if (aircraft.getLastMaintenanceDate() != null && aircraft.getManufactureYear() != null) {
-
             if (aircraft.getLastMaintenanceDate().isBefore(
                     LocalDate.of(aircraft.getManufactureYear(), 1, 1)
             )) {
@@ -99,6 +97,7 @@ public class AircraftService {
     }
 
     public boolean needsMaintenance(Aircraft ac, long thresholdHours, long periodDays) {
+        if (ac == null) return false;
 
         double hours = ac.getTotalFlightHours() == null ? 0 : ac.getTotalFlightHours();
 
@@ -116,6 +115,7 @@ public class AircraftService {
     }
 
     public MaintenanceType detectRequiredCheck(Aircraft ac) {
+        if (ac == null) return null;
 
         double hours = ac.getTotalFlightHours() == null ? 0 : ac.getTotalFlightHours();
         LocalDate last = ac.getLastMaintenanceDate();
@@ -149,13 +149,12 @@ public class AircraftService {
     public void applyMaintenanceIfNeeded(Aircraft ac,
                                          long thresholdHours,
                                          long periodDays) {
+        if (ac == null) return;
 
         if (needsMaintenance(ac, thresholdHours, periodDays)) {
-
             if (ac.getStatus() != Aircraft.Status.MAINTENANCE) {
                 log.warn("Самолёт {} превышает срок простого ТО → MAINTENANCE",
                         ac.getAircraftCode());
-
                 ac.setStatus(Aircraft.Status.MAINTENANCE);
                 aircraftRepository.save(ac);
             }
@@ -164,16 +163,19 @@ public class AircraftService {
         MaintenanceType required = detectRequiredCheck(ac);
 
         if (required != null) {
-
             log.warn("Самолёту {} требуется {}", ac.getAircraftCode(), required);
-
             if (ac.getStatus() != Aircraft.Status.MAINTENANCE) {
-
                 ac.setStatus(Aircraft.Status.MAINTENANCE);
                 aircraftRepository.save(ac);
-
                 log.warn("Самолёт {} переведён в MAINTENANCE из-за {}", ac.getAircraftCode(), required);
             }
+        }
+    }
+
+    public void checkAllAircraftsSafely(long thresholdHours, long periodDays) {
+        for (Aircraft ac : aircraftRepository.findAll()) {
+            if (ac == null) continue;
+            applyMaintenanceIfNeeded(ac, thresholdHours, periodDays);
         }
     }
 }

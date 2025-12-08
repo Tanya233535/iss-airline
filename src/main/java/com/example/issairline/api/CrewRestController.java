@@ -1,5 +1,7 @@
 package com.example.issairline.api;
 
+import com.example.issairline.api.dto.CrewMemberDto;
+import com.example.issairline.api.mapper.CrewMemberMapper;
 import com.example.issairline.entity.CrewMember;
 import com.example.issairline.entity.Flight;
 import com.example.issairline.service.CrewMemberService;
@@ -20,74 +22,64 @@ public class CrewRestController {
     private final FlightRepository flightRepository;
 
     @GetMapping
-    public List<CrewMember> getAll() {
-        return crewService.findAll();
+    public List<CrewMemberDto> getAll() {
+        return crewService.findAll().stream()
+                .map(CrewMemberMapper::toDto)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public CrewMember getById(@PathVariable Long id) {
-        return crewService.findById(id)
+    public CrewMemberDto getById(@PathVariable Long id) {
+        CrewMember member = crewService.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Член экипажа не найден"));
+        return CrewMemberMapper.toDto(member);
     }
 
     @PostMapping
-    public CrewMember create(@RequestBody CrewMember member) {
-
-        attachFlightIfNeeded(member);
-
+    public CrewMemberDto create(@RequestBody CrewMemberDto dto) {
+        Flight flight = null;
+        if (dto.getFlightId() != null) {
+            flight = flightRepository.findById(dto.getFlightId())
+                    .orElseThrow(() -> new EntityNotFoundException("Рейс ID=" + dto.getFlightId() + " не найден"));
+        }
+        CrewMember member = CrewMemberMapper.toEntity(dto, flight);
         try {
             crewService.save(member);
         } catch (EntityExistsException e) {
             throw new EntityExistsException("Такой член экипажа уже существует для этого рейса!");
         }
-
-        return member;
+        return CrewMemberMapper.toDto(member);
     }
 
     @PutMapping("/{id}")
-    public CrewMember update(@PathVariable Long id, @RequestBody CrewMember updates) {
-
+    public CrewMemberDto update(@PathVariable Long id, @RequestBody CrewMemberDto dto) {
         CrewMember existing = crewService.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Член экипажа не найден"));
 
-        existing.setFirstName(updates.getFirstName());
-        existing.setLastName(updates.getLastName());
-        existing.setMiddleName(updates.getMiddleName());
-        existing.setRole(updates.getRole());
-        existing.setQualification(updates.getQualification());
-        existing.setExperienceYears(updates.getExperienceYears());
-
-        if (updates.getFlight() != null) {
-            Flight flight = getFlightOrThrow(updates.getFlight().getId());
-            existing.setFlight(flight);
-        } else {
-            existing.setFlight(null);
+        Flight flight = null;
+        if (dto.getFlightId() != null) {
+            flight = flightRepository.findById(dto.getFlightId())
+                    .orElseThrow(() -> new EntityNotFoundException("Рейс ID=" + dto.getFlightId() + " не найден"));
         }
+
+        existing.setFirstName(dto.getFirstName());
+        existing.setLastName(dto.getLastName());
+        existing.setMiddleName(dto.getMiddleName());
+        existing.setRole(dto.getRole());
+        existing.setQualification(dto.getQualification());
+        existing.setExperienceYears(dto.getExperienceYears());
+        existing.setFlight(flight);
 
         try {
             crewService.save(existing);
         } catch (EntityExistsException e) {
             throw new EntityExistsException("Такой член экипажа уже существует для этого рейса!");
         }
-
-        return existing;
+        return CrewMemberMapper.toDto(existing);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         crewService.deleteById(id);
-    }
-
-    private void attachFlightIfNeeded(CrewMember member) {
-        if (member.getFlight() != null) {
-            Long flightId = member.getFlight().getId();
-            Flight flight = getFlightOrThrow(flightId);
-            member.setFlight(flight);
-        }
-    }
-
-    private Flight getFlightOrThrow(Long id) {
-        return flightRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Рейс ID=" + id + " не найден"));
     }
 }

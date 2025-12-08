@@ -1,13 +1,15 @@
 package com.example.issairline.api;
 
-import com.example.issairline.entity.Flight;
+import com.example.issairline.api.dto.FlightDto;
+import com.example.issairline.api.mapper.FlightMapper;
 import com.example.issairline.entity.Aircraft;
+import com.example.issairline.entity.Flight;
 import com.example.issairline.repository.AircraftRepository;
 import com.example.issairline.service.FlightService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 
 @RestController
@@ -19,81 +21,65 @@ public class FlightRestController {
     private final AircraftRepository aircraftRepository;
 
     @GetMapping
-    public List<Flight> getAll() {
-        return flightService.findAll();
+    public List<FlightDto> getAll() {
+        return flightService.findAll().stream()
+                .map(FlightMapper::toDto)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public Flight getById(@PathVariable Long id) {
-        return flightService.findById(id)
+    public FlightDto getById(@PathVariable Long id) {
+        Flight flight = flightService.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Рейс не найден"));
+        return FlightMapper.toDto(flight);
     }
 
     @PostMapping
-    public Flight create(@RequestBody Flight flight) {
+    public FlightDto create(@RequestBody FlightDto dto) {
+        if (dto.getAircraftCode() == null || dto.getAircraftCode().isBlank()) {
+            throw new IllegalArgumentException("Не указан aircraftCode");
+        }
 
-        Aircraft aircraft = loadAircraft(flight);
+        Aircraft aircraft = aircraftRepository.findById(dto.getAircraftCode())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Самолёт с кодом " + dto.getAircraftCode() + " не найден!"
+                ));
 
         if (aircraft.getStatus() == Aircraft.Status.MAINTENANCE) {
-            throw new IllegalStateException(
-                    "Самолёт " + aircraft.getAircraftCode() +
-                            " находится на техническом обслуживании и не может быть назначен на рейс"
-            );
+            throw new IllegalStateException("Самолёт " + aircraft.getAircraftCode() + " находится на техническом обслуживании");
         }
 
-        if (flight.getPassengerCount() == null) {
-            flight.setPassengerCount(0);
-        }
-
-        flight.setAircraft(aircraft);
+        Flight flight = FlightMapper.toEntity(dto, aircraft);
         flightService.save(flight);
-        return flight;
+        return FlightMapper.toDto(flight);
     }
 
     @PutMapping("/{id}")
-    public Flight update(@PathVariable Long id, @RequestBody Flight updates) {
-
+    public FlightDto update(@PathVariable Long id, @RequestBody FlightDto dto) {
         Flight existing = flightService.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Рейс не найден!"));
+                .orElseThrow(() -> new EntityNotFoundException("Рейс не найден"));
 
-        existing.setFlightNo(updates.getFlightNo());
-        existing.setScheduledDeparture(updates.getScheduledDeparture());
-        existing.setScheduledArrival(updates.getScheduledArrival());
-        existing.setDepartureAirport(updates.getDepartureAirport());
-        existing.setArrivalAirport(updates.getArrivalAirport());
-        existing.setActualDeparture(updates.getActualDeparture());
-        existing.setActualArrival(updates.getActualArrival());
-        existing.setStatus(updates.getStatus());
-        existing.setPassengerCount(updates.getPassengerCount());
-
-        Aircraft aircraft = loadAircraft(updates);
-
-        if (aircraft.getStatus() == Aircraft.Status.MAINTENANCE) {
-            throw new IllegalStateException(
-                    "Самолёт " + aircraft.getAircraftCode() +
-                            " находится на техническом обслуживании и не может быть назначен на рейс"
-            );
+        if (dto.getAircraftCode() == null || dto.getAircraftCode().isBlank()) {
+            throw new IllegalArgumentException("Не указан aircraftCode");
         }
 
-        existing.setAircraft(aircraft);
-        flightService.save(existing);
-        return existing;
+        Aircraft aircraft = aircraftRepository.findById(dto.getAircraftCode())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Самолёт с кодом " + dto.getAircraftCode() + " не найден!"
+                ));
+
+        if (aircraft.getStatus() == Aircraft.Status.MAINTENANCE) {
+            throw new IllegalStateException("Самолёт " + aircraft.getAircraftCode() + " находится на техническом обслуживании");
+        }
+
+        Flight updated = FlightMapper.toEntity(dto, aircraft);
+        updated.setId(id);
+        flightService.save(updated);
+        return FlightMapper.toDto(updated);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         flightService.deleteById(id);
-    }
-
-    private Aircraft loadAircraft(Flight flight) {
-        if (flight.getAircraft() == null) {
-            throw new EntityNotFoundException("Самолёт обязателен (aircraft_code)");
-        }
-
-        String code = flight.getAircraft().getAircraftCode();
-
-        return aircraftRepository.findById(code)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Самолёт с кодом " + code + " не найден!"));
     }
 }

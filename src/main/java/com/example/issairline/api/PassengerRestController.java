@@ -1,9 +1,11 @@
 package com.example.issairline.api;
 
-import com.example.issairline.entity.Passenger;
+import com.example.issairline.api.dto.PassengerDto;
+import com.example.issairline.api.mapper.PassengerMapper;
 import com.example.issairline.entity.Flight;
-import com.example.issairline.service.PassengerService;
+import com.example.issairline.entity.Passenger;
 import com.example.issairline.repository.FlightRepository;
+import com.example.issairline.service.PassengerService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -19,61 +21,51 @@ public class PassengerRestController {
     private final FlightRepository flightRepository;
 
     @GetMapping
-    public List<Passenger> getAll() {
-        return passengerService.findAll();
+    public List<PassengerDto> getAll() {
+        return passengerService.findAll().stream()
+                .map(PassengerMapper::toDto)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public Passenger getById(@PathVariable Long id) {
-        return passengerService.findById(id);
+    public PassengerDto getById(@PathVariable Long id) {
+        Passenger p = passengerService.findById(id);
+        if (p == null) throw new EntityNotFoundException("Пассажир не найден");
+        return PassengerMapper.toDto(p);
     }
 
     @PostMapping
-    public Passenger create(@RequestBody Passenger passenger) {
-        attachFlight(passenger);
-        passengerService.save(passenger);
-        return passenger;
+    public PassengerDto create(@RequestBody PassengerDto dto) {
+        Flight flight = null;
+        if (dto.getFlightId() != null) {
+            flight = flightRepository.findById(dto.getFlightId())
+                    .orElseThrow(() -> new EntityNotFoundException("Рейс ID=" + dto.getFlightId() + " не найден"));
+        }
+
+        Passenger p = PassengerMapper.toEntity(dto, flight);
+        passengerService.save(p);
+        return PassengerMapper.toDto(p);
     }
 
     @PutMapping("/{id}")
-    public Passenger update(@PathVariable Long id, @RequestBody Passenger updates) {
-
+    public PassengerDto update(@PathVariable Long id, @RequestBody PassengerDto dto) {
         Passenger existing = passengerService.findById(id);
+        if (existing == null) throw new EntityNotFoundException("Пассажир не найден");
 
-        existing.setFirstName(updates.getFirstName());
-        existing.setLastName(updates.getLastName());
-        existing.setMiddleName(updates.getMiddleName());
-        existing.setPassportNumber(updates.getPassportNumber());
-        existing.setTicketNumber(updates.getTicketNumber());
-        existing.setSeat(updates.getSeat());
-
-        if (updates.getFlight() != null) {
-            Flight flight = getFlight(updates.getFlight().getId());
-            existing.setFlight(flight);
-        } else {
-            existing.setFlight(null);
+        Flight flight = null;
+        if (dto.getFlightId() != null) {
+            flight = flightRepository.findById(dto.getFlightId())
+                    .orElseThrow(() -> new EntityNotFoundException("Рейс ID=" + dto.getFlightId() + " не найден"));
         }
 
-        passengerService.save(existing);
-        return existing;
+        Passenger updated = PassengerMapper.toEntity(dto, flight);
+        updated.setId(id);
+        passengerService.save(updated);
+        return PassengerMapper.toDto(updated);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         passengerService.delete(id);
-    }
-
-    private void attachFlight(Passenger passenger) {
-        if (passenger.getFlight() != null) {
-            Long flightId = passenger.getFlight().getId();
-            Flight flight = getFlight(flightId);
-            passenger.setFlight(flight);
-        }
-    }
-
-    private Flight getFlight(Long id) {
-        return flightRepository.findById(id)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Рейс ID=" + id + " не найден"));
     }
 }

@@ -1,5 +1,7 @@
 package com.example.issairline.api;
 
+import com.example.issairline.api.dto.UserDto;
+import com.example.issairline.api.mapper.UserMapper;
 import com.example.issairline.entity.User;
 import com.example.issairline.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
@@ -16,62 +18,49 @@ public class UserRestController {
     private final UserService userService;
 
     @GetMapping
-    public List<User> getAll() {
-        return userService.findAll();
+    public List<UserDto> getAll() {
+        return userService.findAll().stream()
+                .map(UserMapper::toDto)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public User getById(@PathVariable Long id) {
+    public UserDto getById(@PathVariable Long id) {
         User user = userService.findById(id);
-        if (user == null)
-            throw new EntityNotFoundException("Пользователь не найден");
-
-        return user;
+        if (user == null) throw new EntityNotFoundException("Пользователь не найден");
+        return UserMapper.toDto(user);
     }
 
     @PostMapping
-    public User create(@RequestBody User user) {
-
-        if (userService.existsUsername(user.getUsername())) {
+    public UserDto create(@RequestBody UserDto dto) {
+        if (userService.existsUsername(dto.getUsername())) {
             throw new IllegalStateException("Логин уже существует");
         }
-
-        userService.save(user, true);
-
-        return user;
+        User u = UserMapper.toEntity(dto);
+        userService.save(u, true);
+        return UserMapper.toDto(u);
     }
 
     @PutMapping("/{id}")
-    public User update(@PathVariable Long id, @RequestBody User updates) {
-
+    public UserDto update(@PathVariable Long id, @RequestBody UserDto dto) {
         User existing = userService.findById(id);
-        if (existing == null)
-            throw new EntityNotFoundException("Пользователь не найден");
+        if (existing == null) throw new EntityNotFoundException("Пользователь не найден");
 
-        if (!existing.getUsername().equals(updates.getUsername())
-                && userService.existsUsername(updates.getUsername())) {
+        if (!existing.getUsername().equals(dto.getUsername()) &&
+                userService.existsUsername(dto.getUsername())) {
             throw new IllegalStateException("Логин уже занят другим пользователем");
         }
 
-        existing.setUsername(updates.getUsername());
-        existing.setRole(updates.getRole());
-
-        if (updates.getPassword() != null && !updates.getPassword().isBlank()) {
-            userService.save(existing, true);
-        } else {
-            userService.save(existing, false);
-        }
-
-        return existing;
+        existing.setUsername(dto.getUsername());
+        existing.setRole(User.Role.valueOf(dto.getRole()));
+        userService.save(existing, false);
+        return UserMapper.toDto(existing);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
-
         User user = userService.findById(id);
-        if (user == null)
-            throw new EntityNotFoundException("Пользователь не найден");
-
+        if (user == null) throw new EntityNotFoundException("Пользователь не найден");
         userService.delete(id);
     }
 }

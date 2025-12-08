@@ -4,7 +4,7 @@ server:
     context-path: /iss
   error:
     whitelabel:
-      enabled: true
+      enabled: false
 
 spring:
   datasource:
@@ -16,32 +16,25 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
 
-  thymeleaf:
-    cache: false
-    prefix: classpath:/templates/
-    suffix: .html
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: WARN
 
-  web:
-    resources:
-      add-mappings: true
-
-  flights:
-    status:
-      update-interval-ms: 10000
-      on-time-window-hours: 1
+flights:
+  status:
+    update-interval-ms: 30000
+    on-time-window-hours: 1
 
 aircraft:
   maintenance:
     threshold-hours: 500
     period-days: 180
-    check-interval-ms: 60000
-
-logging:
-  level:
-    org.thymeleaf: DEBUG
-    org.springframework.web: DEBUG
+    check-interval-ms: 300000
